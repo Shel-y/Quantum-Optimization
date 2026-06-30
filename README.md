@@ -16,7 +16,7 @@
 | **Nombre del dataset** | Reportes de agua de la CDMX (SACMEX) - Filtrado por "Encharcamiento". |
 | **Fuente oficial** | Sistema de Aguas de la Ciudad de México (SACMEX). |
 | **Institución responsable** | Gobierno de la Ciudad de México. |
-| **URL de la fuente** | Los datos se obtuvieron a través del portal de datos abiertos de la CDMX - NO SÉ SI HAY UNA URL EXACTA JOSELYYYYN. |
+| **URL de la fuente** | Los datos se obtuvieron a través del portal de datos abiertos de la CDMX - `https://datos.cdmx.gob.mx/dataset/reportes-de-agua/resource/a8069e94-c7cb-45d7-8166-561e80884422` |
 | **URL raw del CSV usado en `data/`** | `[https://github.com/Shel-y/Quantum-Optimization/blob/main/data/dataset_real_4x4(1).csv]` |
 | **Licencia o condiciones de uso** | Datos públicos abiertos (sin restricciones para uso académico). |
 | **Fecha de consulta** | `22 de Junio de 2026` |
