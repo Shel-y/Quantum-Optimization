@@ -9,7 +9,7 @@
 
 ---
 
-## 1. Dataset y Justificación (Criterio ~80% de la evaluación)
+## 1. Dataset y Justificación 
 
 | **Criterio** | **Descripción y Cumplimiento** |
 | :--- | :--- |
