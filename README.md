@@ -18,7 +18,7 @@
 | **Institución responsable** | Gobierno de la Ciudad de México. |
 | **URL de la fuente** | Los datos se obtuvieron a través del portal de datos abiertos de la CDMX - `https://datos.cdmx.gob.mx/dataset/reportes-de-agua/resource/a8069e94-c7cb-45d7-8166-561e80884422` |
 | **URL raw del CSV usado en `data/`** | `https://raw.githubusercontent.com/Shel-y/Quantum-Optimization/main/data/dataset_real_4x4.csv` |
-| **Licencia o condiciones de uso** | Datos públicos abiertos (sin restricciones para uso académico). |
+| **Licencia o condiciones de uso** | Datos públicos abiertos|
 | **Fecha de consulta** | `22 de Junio de 2026` |
 | **Dominio del problema** | Gestión de infraestructura hídrica y atención de encharcamientos en la CDMX. |
 
