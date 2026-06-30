@@ -41,17 +41,22 @@ El problema se modela como un **matching bipartito** porque buscamos asignar 4 p
 Para construir una matriz **no degenerada** que refleje una interacción real entre el origen (colonia) y el destino (vialidad), se utilizó la **distancia geográfica**.
 
 ### Columnas usadas y Fórmula
-1. **Cálculo de distancia:** Se calcularon las distancias en metros entre cada punto crítico (coordenadas \( lat_i - Latitud i-ésima, lon_i - Longitud i-ésima \)) y cada ruta vial (definida como una polilínea de waypoints).
-2. **Fórmula de Haversine:** Para medir la distancia esférica entre dos puntos geográficos.
-3. **Normalización inversa:** Convertimos distancia en compatibilidad mediante una normalización min-max invertida:
+1. **Cálculo de distancia:** Se calcularon las distancias en metros entre cada punto crítico (coordenadas `lat_i` y `lon_i`) y cada ruta vial (representada como una polilínea de *waypoints*).
 
-   $$ S_{ij} = 1 - \frac{d_{ij} - \min(d)}{\max(d) - \min(d)} $$
+2. **Distancia de Haversine:** Se utilizó la fórmula de Haversine para calcular la distancia geodésica entre dos puntos sobre la superficie terrestre.
 
-   Donde:
-   - $ d_{ij} $ es la distancia mínima (en metros) desde el punto crítico $ i $ hasta la ruta $ j $.
-   - $ min(d) $ y $ max(d) $ son los valores mínimo y máximo de todas las distancias calculadas en la matriz.
-   
-   **Interpretación del score:** Un valor de `1.0` significa que el punto está muy cerca de la ruta (muy compatible, prioridad alta), mientras que `0.0` significa que está muy lejos (poco compatible, prioridad baja).
+3. **Normalización inversa:** Las distancias se transformaron en un puntaje de compatibilidad mediante una normalización min-max invertida:
+
+```text
+S(i,j) = 1 - (d(i,j) - min(d)) / (max(d) - min(d))
+```
+
+Donde:
+
+- `d(i,j)` es la distancia mínima (en metros) entre el punto crítico `i` y la ruta `j`.
+- `min(d)` y `max(d)` corresponden a la distancia mínima y máxima observadas en toda la matriz de distancias.
+
+**Interpretación del score:** Un valor cercano a **1.0** indica que el punto crítico se encuentra muy próximo a la ruta (mayor compatibilidad y prioridad de atención), mientras que un valor cercano a **0.0** indica una menor compatibilidad debido a una mayor distancia.
 
 ### Matriz \( S \) 4×4 resultante (obtenida experimentalmente)
 
@@ -66,26 +71,40 @@ Para construir una matriz **no degenerada** que refleje una interacción real en
 
 ## 3. Restricciones y Formulación QUBO
 
-El problema de asignación se formaliza como:
+El problema de asignación se modela como un problema de *matching* bipartito uno-a-uno con las siguientes restricciones:
 
-- **Restricción por filas:** Cada colonia debe ser asignada a exactamente una ruta.
-  $$
-  \sum_{j=1}^{4} x_{ij} = 1 \quad \forall i \in \{1,\dots,4\}
-  $$
+- **Restricción por filas:** Cada colonia debe asignarse a exactamente una ruta.
+
+```text
+Σⱼ x(i,j) = 1    para toda colonia i
+```
+
 - **Restricción por columnas:** Cada ruta debe recibir exactamente una colonia.
-  $$
-  \sum_{i=1}^{4} x_{ij} = 1 \quad \forall j \in \{1,\dots,4\}
-  $$
+
+```text
+Σᵢ x(i,j) = 1    para toda ruta j
+```
 
 ### Justificación del modelo QUBO
-El problema se transforma en QUBO (Quadratic Unconstrained Binary Optimization) para poder ser resuelto por algoritmos cuánticos como QAOA. La función de energía es:
 
-$$
-E(x) = -\sum_{i,j} S_{ij} x_{ij} + \lambda_A \sum_i (\sum_j x_{ij} - 1)^2 + \lambda_B \sum_j (\sum_i x_{ij} - 1)^2
-$$
+El problema se transforma en un modelo **QUBO (Quadratic Unconstrained Binary Optimization)** para poder resolverlo mediante algoritmos cuánticos como **QAOA**.
 
-Donde $\lambda = 5$ (mayor que el máximo score posible) garantiza que violar una restricción siempre sea más costoso que cualquier beneficio por score. Este modelo es estándar en la literatura de optimización combinatoria y QUBO.
+La función de energía utilizada es:
 
+```text
+E(x) =
+- Σ S(i,j) · x(i,j)
++ λA Σ (Σ x(i,j) - 1)²
++ λB Σ (Σ x(i,j) - 1)²
+```
+
+donde:
+
+- `S(i,j)` representa el score de compatibilidad entre la colonia `i` y la ruta `j`.
+- `x(i,j)` es una variable binaria que vale **1** si la asignación se realiza y **0** en caso contrario.
+- **λA = λB = 5**, un valor mayor que el score máximo posible, lo que garantiza que cualquier violación de las restricciones tenga una penalización superior al beneficio obtenido por maximizar el score.
+
+Este es un modelo estándar ampliamente utilizado en problemas de optimización combinatoria formulados como QUBO.
 ---
 
 ## 4. Resultados
@@ -111,22 +130,25 @@ La fuerza bruta encontró la asignación óptima con las siguientes característ
 
 ## 5. Ética y Limitaciones
 
-**Riesgos éticos identificados:**
-- El modelo utiliza datos agregados por colonia, sin nombres, CURP o direcciones específicas, por lo que no vulnera la privacidad individual.
-- No se toman decisiones reales de asignación de recursos; esto es un ejercicio académico.
+### Riesgos éticos identificados
 
-**Medidas de mitigación:**
-- Se usaron exclusivamente datos públicos y agregados.
-- El README y el notebook dejan claro que la salida de QAOA **no es una recomendación normativa** para la SACMEX.
+- El modelo utiliza datos agregados por colonia, sin incluir nombres, CURP, direcciones específicas ni otra información personal, por lo que no compromete la privacidad individual.
+- No se emplea para tomar decisiones reales de asignación de recursos; su propósito es exclusivamente académico y demostrativo.
 
-**Limitaciones del modelo $ 4 \times 4 $:**
-- Escala pequeña (solo 4 puntos críticos), no representativa de toda la CDMX.
-- El score basado únicamente en distancia ignora factores como capacidad de bombeo, personal disponible o tipo de encharcamiento.
-- Si el dataset creciera (ej. $ 10\times 10 $), la fuerza bruta sería inviable ($ 2^{100} $), y se necesitarían técnicas avanzadas de muestreo o hardware cuántico real.
+### Medidas de mitigación
 
-**¿Qué cambiaría si el dataset creciera?**
-Se requeriría un mixer que preserve restricciones (ej. *XY-mixer*) para aumentar la probabilidad de factibilidad, y se necesitarían más capas $ p $ en QAOA para aumentar la calidad de la aproximación, así como optimizadores clásicos más robustos (ej. SPSA).
+- Se utilizaron únicamente datos públicos provenientes del portal de Datos Abiertos de la Ciudad de México.
+- Tanto este README como el notebook aclaran que la salida de QAOA **no constituye una recomendación operativa o normativa** para SACMEX.
 
+### Limitaciones del modelo (4×4)
+
+- La escala del problema es reducida (4 puntos críticos y 4 rutas), por lo que no representa la complejidad real de la red de atención de la Ciudad de México.
+- El score de compatibilidad se basa únicamente en la distancia geográfica y no considera variables operativas como capacidad de bombeo, disponibilidad de personal, severidad del encharcamiento o condiciones de tráfico.
+- Si el problema creciera, por ejemplo a una instancia de **10×10**, la búsqueda por fuerza bruta sería computacionalmente inviable (2¹⁰⁰ posibles estados), por lo que sería necesario recurrir a algoritmos de optimización más escalables o a hardware cuántico.
+
+### ¿Qué cambiaría si el dataset creciera?
+
+Para instancias de mayor tamaño sería recomendable utilizar un *mixer* que preserve las restricciones (por ejemplo, **XY Mixer**) para incrementar la probabilidad de obtener soluciones factibles. Asimismo, podrían requerirse más capas (**p**) en QAOA y optimizadores clásicos más robustos, como **SPSA**, para mejorar la calidad de las soluciones obtenidas.
 ---
 
 ## 6. Ejecución
