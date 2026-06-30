@@ -17,7 +17,7 @@
 | **Fuente oficial** | Sistema de Aguas de la Ciudad de México (SACMEX). |
 | **Institución responsable** | Gobierno de la Ciudad de México. |
 | **URL de la fuente** | Los datos se obtuvieron a través del portal de datos abiertos de la CDMX - NO SÉ SI HAY UNA URL EXACTA JOSELYYYYN. |
-| **URL raw del CSV usado en `data/`** | `[https://raw.githubusercontent.com/TU-USUARIO/TU-REPO/main/data/dataset_real_4x4.csv]` |
+| **URL raw del CSV usado en `data/`** | `[https://github.com/Shel-y/Quantum-Optimization/blob/main/data/dataset_real_4x4(1).csv]` |
 | **Licencia o condiciones de uso** | Datos públicos abiertos (sin restricciones para uso académico). |
 | **Fecha de consulta** | `22 de Junio de 2026` |
 | **Dominio del problema** | Gestión de infraestructura hídrica y atención de encharcamientos en la CDMX. |
