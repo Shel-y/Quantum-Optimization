@@ -9,38 +9,52 @@
 
 ---
 
-## 1. Dataset y Justificación 
+## 1. Dataset y Justificación
 
 | **Criterio** | **Descripción y Cumplimiento** |
 | :--- | :--- |
-| **Nombre del dataset** | Reportes de agua de la CDMX (SACMEX) - Filtrado por "Encharcamiento". |
+| **Nombre del dataset** | Reportes de agua de la CDMX (SACMEX) – Filtrado por "Encharcamiento". |
 | **Fuente oficial** | Sistema de Aguas de la Ciudad de México (SACMEX). |
 | **Institución responsable** | Gobierno de la Ciudad de México. |
-| **URL de la fuente** | Los datos se obtuvieron a través del portal de datos abiertos de la CDMX - `https://datos.cdmx.gob.mx/dataset/reportes-de-agua/resource/a8069e94-c7cb-45d7-8166-561e80884422` |
-| **URL raw del CSV usado en `data/`** | `https://raw.githubusercontent.com/Shel-y/Quantum-Optimization/main/data/dataset_real_4x4.csv` |
-| **Licencia o condiciones de uso** | Datos públicos abiertos|
-| **Fecha de consulta** | `22 de Junio de 2026` |
-| **Dominio del problema** | Gestión de infraestructura hídrica y atención de encharcamientos en la CDMX. |
+| **URL de la fuente** | https://datos.cdmx.gob.mx/dataset/reportes-de-agua/resource/a8069e94-c7cb-45d7-8166-561e80884422 |
+| **URL raw del CSV usado en `data/`** | https://raw.githubusercontent.com/Shel-y/Quantum-Optimization/main/data/dataset_real_4x4.csv |
+| **Licencia o condiciones de uso** | Datos públicos abiertos. |
+| **Fecha de consulta** | 22 de junio de 2026. |
+| **Dominio del problema** | Gestión de infraestructura hídrica y atención de encharcamientos en la Ciudad de México. |
 
-### Justificación del Modelado
-El problema se modela como un **matching bipartito** porque buscamos asignar 4 puntos críticos (colonias con alta incidencia de encharcamientos) a 4 corredores viales (rutas de atención) de manera uno-a-uno, lo cual se busca optimizar y llegar a una asignación exclusiva y unitaria (Usuario - Ruta) tras ejecutar los algoritmos cuánticos y clásicos. 
+### ¿Por qué este dataset?
 
-**Conjunto A (Usuarios/Orígenes):** Las 4 colonias con mayor número de reportes de encharcamiento, que representan los focos de atención.
-> *Criterio de selección:* Posterior al depuramiento de los datos de la SACMEX, se agruparon las coordenadas geográficas (redondeadas a 3 decimales) de los reportes de encharcamiento de 2022-2023, se contó la frecuencia por coordenada y se seleccionaron las 4 más recurrentes.
+El dataset de reportes de agua de SACMEX registra incidencias reales reportadas por la ciudadanía, por lo que constituye una fuente representativa para estudiar la distribución espacial de los encharcamientos en la Ciudad de México. Al provenir del portal oficial de Datos Abiertos de la CDMX, garantiza transparencia, trazabilidad y reproducibilidad del experimento.
 
-**Conjunto B (Recursos/Rutas):** 4 vialidades primarias de la CDMX, elegidas por ser corredores viales estratégicos donde se concentran problemas de drenaje.
-> *Criterio de selección:* Vialidades relevantes en el mapa de la ciudad (Viaducto, Circuito Interior, Periférico y Eje Central).
+Aunque el conjunto de datos original contiene miles de registros, para este proyecto se construyó una instancia reducida de **4×4** con fines demostrativos. Esta reducción permite formular un problema de optimización suficientemente pequeño para comparar soluciones clásicas y cuánticas, sin perder el vínculo con datos reales.
 
-**Definición de $$x_{ij}=1$$** Significa asignar la cuadrilla o atención prioritaria del punto crítico `i` a la vialidad `j`.  
-**Definición de $$x_{ij}=0$$** No se asigna ese recurso a esa vialidad.
+### Justificación del modelado
 
----
+El problema se modela como un **matching bipartito** porque se busca asignar de manera exclusiva cuatro puntos críticos con alta incidencia de encharcamientos a cuatro corredores viales estratégicos donde podrían concentrarse acciones de atención o monitoreo.
+
+Cada punto crítico debe asignarse a una única ruta y cada ruta debe atender exactamente un punto crítico, lo que convierte el problema en un caso clásico de asignación uno-a-uno. Esta estructura puede formularse naturalmente como un problema **QUBO (Quadratic Unconstrained Binary Optimization)** y resolverse mediante algoritmos como **QAOA**.
+
+### Construcción de la instancia
+
+**Conjunto A (Puntos críticos):**
+
+Se identificaron los cuatro puntos geográficos con mayor concentración de reportes de encharcamiento correspondientes al periodo 2022–2023. Para ello, las coordenadas fueron redondeadas a tres decimales, agrupadas por ubicación y ordenadas según su frecuencia de aparición. Posteriormente, cada punto se asoció con la colonia correspondiente para facilitar la interpretación de los resultados.
+
+**Conjunto B (Corredores viales):**
+
+Se seleccionaron cuatro vialidades primarias de la Ciudad de México (Viaducto, Circuito Interior, Periférico y Eje Central), por tratarse de corredores estratégicos dentro de la red vial y representar una aproximación razonable de posibles rutas de atención.
+
+**Variables de decisión**
+
+- **`x(i,j) = 1`** indica que el punto crítico `i` se asigna a la ruta `j`.
+- **`x(i,j) = 0`** indica que dicha asignación no se realiza.
 
 ## 2. Matriz de Score (Compatibilidad \( S \))
 
 Para construir una matriz **no degenerada** que refleje una interacción real entre el origen (colonia) y el destino (vialidad), se utilizó la **distancia geográfica**.
 
 ### Columnas usadas y Fórmula
+
 1. **Cálculo de distancia:** Se calcularon las distancias en metros entre cada punto crítico (coordenadas `lat_i` y `lon_i`) y cada ruta vial (representada como una polilínea de *waypoints*).
 
 2. **Distancia de Haversine:** Se utilizó la fórmula de Haversine para calcular la distancia geodésica entre dos puntos sobre la superficie terrestre.
@@ -66,6 +80,8 @@ Donde:
 | **U2 (Colinas Del Ajusco)** | 0.31 | 0.00 | **0.72** | 0.01 |
 | **U3 (Jardines Del Pedregal)** | **0.63** | 0.31 | 1.00 | 0.32 |
 | **U4 (La Joya)** | 0.38 | **0.16** | 0.80 | 0.19 |
+
+Es importante notar que el score más alto de cada fila no determina por sí solo la asignación final. Por ejemplo, U3 alcanza su valor máximo individual con R3 (1.00), pero esto no implica que esa sea la asignación óptima del problema completo: el emparejamiento uno-a-uno considera simultáneamente las cuatro filas y las cuatro columnas, de modo que la combinación que maximiza la suma total de scores bajo la restricción de unicidad resulta ser U1-R4, U2-R3, U3-R1 y U4-R2, como se detalla en la sección de Resultados.
 
 ---
 
@@ -105,11 +121,13 @@ donde:
 - **λA = λB = 5**, un valor mayor que el score máximo posible, lo que garantiza que cualquier violación de las restricciones tenga una penalización superior al beneficio obtenido por maximizar el score.
 
 Este es un modelo estándar ampliamente utilizado en problemas de optimización combinatoria formulados como QUBO.
+
 ---
 
 ## 4. Resultados
 
 ### Solución Clásica Exacta (Fuerza Bruta sobre $2^{16}$ estados)
+
 La fuerza bruta encontró la asignación óptima con las siguientes características:
 - **Mejor asignación:** `U1-R4, U2-R3, U3-R1, U4-R2`.
 - **Score total:** `2.17`.
@@ -117,6 +135,7 @@ La fuerza bruta encontró la asignación óptima con las siguientes característ
 - **¿Cumple restricciones?** Sí.
 
 ### Resultado QAOA Local (Simulación $p=1$, COBYLA)
+
 - **Parámetros óptimos:** $$ \gamma \approx `-1.7674`, \beta \approx `0.4382` $$.
 - **Energía esperada:** `17.343`.
 - **Brecha (energía esperada vs. óptimo clásico):** `19.513`.
@@ -149,6 +168,7 @@ La fuerza bruta encontró la asignación óptima con las siguientes característ
 ### ¿Qué cambiaría si el dataset creciera?
 
 Para instancias de mayor tamaño sería recomendable utilizar un *mixer* que preserve las restricciones (por ejemplo, **XY Mixer**) para incrementar la probabilidad de obtener soluciones factibles. Asimismo, podrían requerirse más capas (**p**) en QAOA y optimizadores clásicos más robustos, como **SPSA**, para mejorar la calidad de las soluciones obtenidas.
+
 ---
 
 ## 6. Ejecución
